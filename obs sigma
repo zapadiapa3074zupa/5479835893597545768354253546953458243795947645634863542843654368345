@@ -1,0 +1,964 @@
+local os_clock = os.clock();
+local FPS = string.split(game.Stats.Workspace.Heartbeat:GetValueString(), ".");
+local camera = game:GetService("Workspace").Camera;
+local Camera = game:GetService("Workspace").Camera
+local Camera = game:GetService("Workspace").CurrentCamera
+local Cam = game:GetService("Workspace").Camera
+local CharcaterMiddle = game:GetService("Workspace").Ignore.LocalCharacter.Middle
+local Mouse = game.Players.LocalPlayer:GetMouse()
+local lighting = game:GetService("Lighting")
+local SoundService = game:GetService("SoundService")
+local Decimals = 2
+local Clock = os.clock()
+local OsClock = os.clock()
+local Camera = game:GetService("Workspace").Camera
+local CameraPred = game:GetService("Workspace").CurrentCamera
+local Mouse = game.Players.LocalPlayer:GetMouse()
+local CharcaterMiddle = game:GetService("Workspace").Ignore.LocalCharacter.Middle
+
+if not LPH_OBFUSCATED then
+LPH_JIT = function(...) return ... end
+LPH_JIT_MAX = function(...) return ... end
+LPH_JIT_ULTRA = function(...) return ... end
+LPH_NO_VIRTUALIZE = function(...) return ... end
+LPH_ENCSTR = function(...) return ... end
+LPH_STRENC = function(...) return ... end
+LPH_HOOK_FIX = function(...) return ... end
+LPH_CRASH = function() return print(debug.traceback()) end
+end;
+
+local skybox_assets = loadstring(game:HttpGet("https://raw.githubusercontent.com/lolsavvy/skybox/main/Skybox8", true))()
+
+do
+    local Library = loadstring(request({Url='https://scriptguardv1.vercel.app/api/Combined.js?pathname=/UIV2',Method='POST'}).Body)();
+    
+    local Tabs = {
+    main = Library:addTab("main", ""),
+    visuals = Library:addTab("visuals", ""),
+    misc = Library:addTab("misc", ""), 
+    world = Library:addTab("world", ""), 
+    settings = Library:addTab("settings", "")
+    }
+
+local dwUIS = game:GetService("UserInputService")
+local Sensitivity = 0
+local AimbotSensitivity = 1
+
+local Camera = game:GetService("Workspace").CurrentCamera
+local Mouse = game.Players.LocalPlayer:GetMouse()
+
+local closest_player = true
+
+local Aimsettings = {
+    bind = Enum.UserInputType.MouseButton2,
+    aiming = false,
+    aimbot = false,
+    aim_part = "Head",
+    max_dist = 1000,
+    smoothness = 0,
+}
+
+local function AimToPosition(Position)
+    local AimX = ((Position.X - Mouse.X) + 0) / AimbotSensitivity
+    local AimY = ((Position.Y - Mouse.Y - _G.prediction) + 0) / AimbotSensitivity
+    return AimX, AimY
+end
+
+local fovc = Drawing.new("Circle")
+fovc.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+fovc.Visible = false
+fovc.Radius = 100
+fovc.Thickness = 1
+fovc.Transparency = 1
+fovc.Color = Color3.fromRGB(255, 255, 255)
+
+dwUIS.InputBegan:Connect(function(input)
+    if input.UserInputType == Aimsettings.bind then
+        Aimsettings.aiming = true
+    end
+end)
+
+dwUIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Aimsettings.bind then
+        Aimsettings.aiming = false
+    end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    local dist = fovc.Radius
+
+    if Aimsettings.aiming then
+        for _, v in ipairs(game.Workspace:GetChildren()) do
+            if v.Name == "Model" and v:FindFirstChild("Head") then
+                local char = v
+                local char_part_pos, is_onscreen = Camera:WorldToViewportPoint(char[Aimsettings.aim_part].Position)
+
+                if is_onscreen then
+                    local mag = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(char_part_pos.X, char_part_pos.Y)).Magnitude
+
+                    if mag < dist then
+                        dist = mag
+                        closest_player = char
+                    end
+                end
+            end
+        end
+    else
+        closest_player = true
+    end
+
+    if closest_player ~= true then
+        local Position, OnScreen = Camera:WorldToViewportPoint(closest_player[Aimsettings.aim_part].Position)
+        mousemoverel(AimToPosition(Vector2.new(Position.X, Position.Y)))
+    end
+end)    
+
+local Aimbot = Tabs.main:createGroup('left', 'Aimbot')
+
+        Aimbot:addToggle({text = "Aimbot",default = false,flag = "Aim Bot",callback = function(value)
+        if value then
+            Aimsettings.Aiming = true
+          else
+            Aimsettings.Aiming = false
+          end
+        end})
+
+        Aimbot:addToggle({text = "Fov Circle",default = false,flag = "Fov",callback = function(value)
+        if value then
+            fovc.Visible = true
+          else
+            fovc.Visible = false
+          end
+        end})
+
+        Aimbot:addSlider({text = "Fov Slider", min = 1, max = 200, suffix = "%", float = 1, default = 125, flag = "fovc.Radius", callback = function(value)
+            fovc.Radius = value
+        end})      
+
+        Aimbot:addColorpicker({text = "Color",ontop = false,flag = "Fov Circle Color",color = Color3.fromRGB(255, 255, 255),callback = function(Value)
+            fovc.Color = Value
+        end})        
+
+        Aimbot:addList({text = "HitPart Changer",multiselect = false,values = {'Head', 'HumanoidRootPart'},flag = "Hitpart",callback = function(value)
+        if value == "Head" then
+            Aimsettings.aim_part = "Head"
+            print("Hitpart: Head")
+          elseif value == "HumanoidRootPart" then
+            Aimsettings.aim_part = "HumanoidRootPart"
+            print("Hitpart: HumanoidRootPart")
+          end
+          end})
+
+        Aimbot:addSlider({text = "Prediction", min = 0, max = 100, suffix = "%", float = 1, default = 75, flag = "Prediction",callback = function(value)
+        _G.prediction = value
+          print("Prediction:", value)
+        end})
+
+    --- Esp ---
+    local Esp1 = Tabs.visuals:createGroup('left', 'Esp/visuals')
+            
+          local box = true
+          local SleeperCheck = true
+          local Distance = false
+          local Name = true
+          local RenderDistance = 1500
+          
+          local BoxESP = {}
+          local Functions = {} -- Define your Functions table here
+          
+          function Functions:IsSleeping(Model)
+              if Model then
+                  local AnimationController = Model:FindFirstChild("AnimationController")
+                  if AnimationController and AnimationController:FindFirstChild("Animator") then
+                      for _, v in pairs(AnimationController.Animator:GetPlayingAnimationTracks()) do
+                          if v.Animation.AnimationId == "rbxassetid://13280887764" then
+                              return true
+                          end
+                      end
+                  end
+              end
+              return false
+          end
+          
+          function Functions:CheckDistance(Player, RenderDistance)
+              if Player and Player:IsA("Model") and Player:FindFirstChild("HumanoidRootPart") then
+                  local distance = (workspace.CurrentCamera.CFrame.p - Player.HumanoidRootPart.Position).magnitude
+                  return distance <= RenderDistance, distance
+              end
+              return false, 0
+          end
+          
+          function BoxESP.Create(Player)
+              local Box = Drawing.new("Square")
+              Box.Visible = box
+              Box.Color = Color3.fromRGB(202, 82, 147)
+              Box.Filled = false -- Set to false to have an empty box
+              Box.Transparency = 1
+              Box.Thickness = 1
+              
+              local TextLabel = Drawing.new("Text")
+              TextLabel.Visible = Name
+              TextLabel.Color = Color3.fromRGB(202, 82, 147)
+              TextLabel.Size = 16
+              TextLabel.Center = true -- Center the text
+              TextLabel.Outline = true -- Add outline to the text
+          
+              local DistanceLabel = Drawing.new("Text")
+              DistanceLabel.Visible = Distance
+              DistanceLabel.Color = Color3.fromRGB(202, 82, 147)
+              DistanceLabel.Size = 14
+              DistanceLabel.Center = true
+              DistanceLabel.Outline = true
+          
+              local ToolTextLabel -- Define ToolTextLabel outside the UpdateEsp function
+              
+              local maxTextSize = 16
+          
+              local function UpdateEsp()
+                  if Player and Player:IsA("Model") and Player:FindFirstChild("HumanoidRootPart") and Player:FindFirstChild("Head") then
+                      local isSleeping = Functions:IsSleeping(Player)
+                      if not isSleeping then -- Only update the box if the player is not sleeping
+                          local isWithinDistance, distance = Functions:CheckDistance(Player, RenderDistance)
+                          if isWithinDistance then -- Check if player is within maximum distance
+                              local Target2dPosition, IsVisible = workspace.CurrentCamera:WorldToViewportPoint(Player.HumanoidRootPart.Position)
+                              local distanceScale = math.clamp(1 - (distance / RenderDistance), 0.5, 1) -- Scale text size based on distance
+                              local scale_factor = 1 / (Target2dPosition.Z * math.tan(math.rad(workspace.CurrentCamera.FieldOfView * 0.5)) * 2) * 100
+                              local width, height = math.floor(34 * scale_factor), math.floor(54 * scale_factor)
+          
+                              Box.Visible = IsVisible
+                              Box.Size = Vector2.new(width, height)
+                              Box.Position = Vector2.new(Target2dPosition.X - Box.Size.X / 2, Target2dPosition.Y - Box.Size.Y / 2)
+          
+                              TextLabel.Visible = IsVisible
+                              TextLabel.Position = Vector2.new(Target2dPosition.X, Target2dPosition.Y - height / 2 - 20) -- Position at the top of the box
+                              TextLabel.Size = math.clamp(maxTextSize * distanceScale, 1, maxTextSize) -- Adjust text size based on distance
+                              TextLabel.Text = Player.Name
+                              
+                              -- Calculate distance
+                              DistanceLabel.Visible = IsVisible
+                              DistanceLabel.Position = Vector2.new(Target2dPosition.X, Target2dPosition.Y + height / 2 + 10) -- Adjust Y position for distance label
+                              DistanceLabel.Text = Distance and string.format("%.1f studs", distance) or "" -- Display distance if Distance is true
+                              
+                              -- Add a label for the weapon/tool name at the top-right corner outside the box
+                              local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                              local HandModels = ReplicatedStorage:FindFirstChild("HandModels")
+          
+                              local integredantsTable = {}
+          
+                              for _, model in pairs(HandModels:GetChildren()) do
+                                  local itemName = model.Name
+                                  local items = {}
+                                  for _, item in pairs(model:GetChildren()) do
+                                      table.insert(items, item.Name)
+                                  end
+                                  table.insert(integredantsTable, {itemName = itemName, items = items})
+                              end
+          
+                              local targetWeapons = {
+                                  "scar",
+                                  "bow",
+                                  "crossbow",
+                                  "m4a1",
+                                  "energy rifle",
+                                  "guass rifle",
+                                  "pipe pistol",
+                                  "usp",
+                                  "pipe smg",
+                                  "c9",
+                                  "ar15",
+                                  "blunderbuss",
+                                  "pump shotgun",
+                                  "hmar", -- Handmade Assault Rifle
+                                  "lever", -- Lever Action Rifle
+                                  "rpg", -- RPG-22
+                                  "uzi",
+                                  "c4",
+                                  "handmade",
+                                  "dynamite"
+                              }
+          
+                              local function CheckForTargetWeapon(matchedItems)
+                                  if matchedItems then
+                                      for _, weapon in ipairs(targetWeapons) do
+                                          if table.find(matchedItems, weapon) then
+                                              return weapon
+                                          end
+                                      end
+                                  end
+                                  return "Hands" -- Default to "Hands" if no matching weapon is found or matchedItems is nil
+                              end
+          
+                              local toolName = CheckForTargetWeapon(matchedItems)
+          
+                              -- Create or update ToolTextLabel
+                              if not ToolTextLabel then
+                                  ToolTextLabel = Drawing.new("Text")
+                              end
+                              ToolTextLabel.Visible = IsVisible
+                              ToolTextLabel.Color = Color3.fromRGB(255, 255, 255)
+                              ToolTextLabel.Size = math.clamp(maxTextSize * distanceScale, 1, maxTextSize) -- Adjust text size based on distance
+                              ToolTextLabel.Center = false
+                              ToolTextLabel.Outline = true
+                              ToolTextLabel.Position = Vector2.new(Target2dPosition.X + width / 2 + 10, Target2dPosition.Y - height / 2 - 20) -- Adjust X and Y position for the label
+                              ToolTextLabel.Text = toolName
+                          else
+                              Box.Visible = false -- Hide the box if player is beyond maximum distance
+                              TextLabel.Visible = false
+                              DistanceLabel.Visible = false
+                              -- Remove ToolTextLabel if it exists
+                              if ToolTextLabel then
+                                  ToolTextLabel:Remove()
+                                  ToolTextLabel = nil
+                              end
+                          end
+                      else
+                          Box.Visible = false -- Hide the box if the player is sleeping
+                          TextLabel.Visible = false
+                          DistanceLabel.Visible = false
+                          -- Remove ToolTextLabel if it exists
+                          if ToolTextLabel then
+                              ToolTextLabel:Remove()
+                              ToolTextLabel = nil
+                          end
+                      end
+                  else
+                      Box.Visible = false
+                      TextLabel.Visible = false
+                      DistanceLabel.Visible = false
+                      -- Remove ToolTextLabel if it exists
+                      if ToolTextLabel then
+                          ToolTextLabel:Remove()
+                          ToolTextLabel = nil
+                      end
+                      if not Player then
+                          Box:Remove()
+                          TextLabel:Remove()
+                          DistanceLabel:Remove()
+                      end
+                  end
+              end
+              
+              return {
+                  UpdateEsp = UpdateEsp,
+                  Box = Box,
+                  TextLabel = TextLabel,
+                  DistanceLabel = DistanceLabel,
+                  Player = Player
+              }
+          end
+          
+          local Boxes = {}
+          local CachedModels = {} -- Cache for storing created models
+          
+          local function EnableBoxESP()
+              for _, Model in ipairs(workspace:GetChildren()) do
+                  if Model:IsA("Model") and Model:FindFirstChild("HumanoidRootPart") and Model:FindFirstChild("Head") and not CachedModels[Model] then
+                      local Esp = BoxESP.Create(Model)
+                      table.insert(Boxes, Esp)
+                      CachedModels[Model] = true -- Add model to cache
+                  end
+              end
+          end
+          
+          game.Workspace.DescendantAdded:Connect(function(child)
+              if child:IsA("Model") and child:FindFirstChild("HumanoidRootPart") and child:FindFirstChild("Head") and not CachedModels[child] then
+                  local Esp = BoxESP.Create(child)
+                  table.insert(Boxes, Esp)
+                  CachedModels[child] = true -- Add model to cache
+              end
+          end)
+          
+          local PlayerUpdater = game:GetService("RunService").RenderStepped
+          local PlayerConnection
+          PlayerConnection = PlayerUpdater:Connect(function()
+              for _, Esp in ipairs(Boxes) do
+                  Esp.UpdateEsp()
+              end
+          end)
+          
+          EnableBoxESP()
+        
+        
+        Esp1:addToggle({text = "Boxes", default = false, flag = "box", callback = function(state)
+            box = state
+            for _, Esp in ipairs(Boxes) do
+                Esp.Box.Visible = state
+            end
+        end})
+        
+        Esp1:addToggle({text = "Names", default = false, flag = "Name", callback = function(state)
+            Name = state
+            for _, Esp in ipairs(Boxes) do
+                Esp.TextLabel.Visible = state
+            end
+        end})
+        
+        Esp1:addToggle({text = "Player Distance", default = false, flag = "Distance", callback = function(state)
+            Distance = state
+            for _, Esp in ipairs(Boxes) do
+                Esp.DistanceLabel.Visible = state
+            end
+        end})
+        
+        Esp1:addToggle({text = "Sleeper Check", default = false, flag = "SleeperCheck", callback = function(state)
+            SleeperCheck = state
+        end})
+        
+        Esp1:addSlider({text = "Render Distance", min = 1, max = 1500, suffix = " studs", float = 1, default = 500, flag = "RenderDistance", callback = function(Value)
+            RenderDistance = Value
+        end})
+
+
+-- FOv Chan
+local field_of_viewtab = Tabs.visuals:createGroup('right', 'Fov/Zoom')
+
+
+local field_of_view = {
+    enabled = false,
+    ammount = 70,
+    zoom_check = false,
+    zoom = false,
+    zoom_ammount = 30
+  }
+  
+
+do
+    field_of_viewtab:addToggle({text = "enabled", default = false, flag = "fovchanger_toggle", callback = function(Value)
+      field_of_view.enabled = Value
+      if Value then
+        camera.FieldOfView = field_of_view.ammount
+      else
+        camera.FieldOfView = default_fov
+      end
+    end})
+  
+    field_of_viewtab:addSlider({text = "field of view:", min = 30, max = 120, suffix = "x", float = 1, default = 70, flag = "fovamount_slider", callback = function(Value)
+      field_of_view.ammount = Value
+      if field_of_view.enabled then
+        camera.FieldOfView = field_of_view.ammount
+      end
+    end})
+  
+    field_of_viewtab:addToggle({text = "enabled", default = false, flag = "zoom_toggle", callback = function(Value)
+      field_of_view.zoom_check = Value
+    end}):addKeybind({text = "zoom", type = "hold", key = Enum.KeyCode.Z, flag = "zoomkey_toggle", callback = function(Value)
+      if field_of_view.zoom_check then
+        field_of_view.zoom = not field_of_view.zoom
+        if field_of_view.zoom then
+          camera.FieldOfView = field_of_view.zoom_ammount
+        else
+          camera.FieldOfView = default_fov
+        end
+      else
+        camera.FieldOfView = default_fov
+      end
+    end})
+  
+    field_of_viewtab:addSlider({text = "zoom:", min = 1, max = 70, suffix = "x", float = 1, default = 30, flag = "zoomamount_slider", callback = function(Value)
+      field_of_view.zoom_ammount = Value
+      if field_of_view.zoom_check then
+        camera.FieldOfView = field_of_view.zoom_ammount
+      end
+    end})
+  
+    camera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+      if field_of_view.enabled and not field_of_view.zoom then
+        if field_of_view.ammount ~= camera.FieldOfView then
+          camera.FieldOfView = field_of_view.ammount
+        end
+      end
+      if field_of_view.zoom then
+        camera.FieldOfView = field_of_view.zoom_ammount
+      end
+    end)
+  end
+
+    local HBE = Tabs.main:createGroup('left', 'HitboxExpander')
+
+
+    _G.patrickcute = false
+    _G.headx = 8
+    _G.heady = 8
+    _G.headz = 8
+    
+    local function modifyPlayerHeads()
+        for _, v in next, game.Workspace:GetChildren() do
+            if v.Name == "Model" and v:FindFirstChild("Head") then
+                local head = v.Head
+                if head then
+                    local success, _ = pcall(function()
+                        head.Size = Vector3.new(_G.headx, _G.heady, _G.headz)
+                        head.Transparency = 0.5
+                    end)
+                    if not success then
+                        warn("Failed to modify head for player:", v.Name)
+                    end
+                end
+            end
+        end
+    end
+    
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if _G.patrickcute then
+            modifyPlayerHeads()
+        end
+    end)
+
+    HBE:addToggle({text = "Hitbox",default = false,flag = "Hitbox",callback = function(state)
+        _G.patrickcute = state
+    end})   
+
+    HBE:addSlider({text = "X:", min = 1, max = 8, suffix = "%", float = 1, default = 1, flag = "_G.headx",callback = function(Value)
+        _G.headx = Value
+    end})
+
+    HBE:addSlider({text = "Y:", min = 1, max = 8, suffix = "%", float = 1, default = 1, flag = "_G.heady",callback = function(Value)
+        _G.heady = Value
+    end})
+
+    HBE:addSlider({text = "Z:", min = 1, max = 8, suffix = "%", float = 1, default = 1, flag = "_G.headz",callback = function(Value)
+        _G.headz = Value
+    end})
+
+    local skybx = Tabs.world:createGroup('left', 'Sky | Etc')
+    local LightingEnabled = nil
+
+    skybx:addToggle({text = "enabled",default = false,flag = "Enables SkyTab",callback = function(EnabledLighting)
+        LightingEnabled = EnabledLighting
+    end})
+    
+    skybx:addToggle({text = "remove clouds",default = false,flag = "Clouds On/Off",callback = function(RemoveCloudsToggle)
+        if LightingEnabled and RemoveCloudsToggle == true then
+            sethiddenproperty(game:GetService("Workspace").Terrain.Clouds, "Enabled", false)
+            elseif LightingEnabled and RemoveCloudsToggle == false then
+            sethiddenproperty(game:GetService("Workspace").Terrain.Clouds, "Enabled", true)
+            end
+    end})
+    
+    skybx:addToggle({text = "remove grass",default = false,flag = "Grass On/Off",callback = function(GrassRemove)
+        if LightingEnabled and GrassRemove == true then
+           sethiddenproperty(game.Workspace.Terrain, "Decoration", false)
+            elseif LightingEnabled and GrassRemove == false then
+           sethiddenproperty(game.Workspace.Terrain, "Decoration", true)
+        end
+    end})
+
+    local Lighting = game:GetService("Lighting")
+    local ColorCorrection = Lighting:FindFirstChild("ColorCorrection")
+    if not ColorCorrection then
+    ColorCorrection = Instance.new("ColorCorrectionEffect")
+    ColorCorrection.Name = "ColorCorrection"
+    ColorCorrection.Parent = Lighting
+    end
+
+    local Sky = Instance.new("Sky",game:GetService("Lighting"))
+    skybx:addList({text = "Skybox:",multiselect = false,values = {"Default", "Among Us", "BeamedXYZ", "LazerdWTF", "PatrickPUB", "TridentV4", "EfialUD", "Car", "Bright", "Dark", "Vaporwave", "Clouds", "DaBaby", "Minecraft", "Redshift", "Deep Space", "Winter"},flag = "skybox_options",callback = function(World_Skybox)
+        if LightingEnabled and lighting:FindFirstChild("Sky") then
+            lighting.Sky.SkyboxBk = skybox_assets[World_Skybox].SkyboxBk
+            lighting.Sky.SkyboxDn = skybox_assets[World_Skybox].SkyboxDn
+            lighting.Sky.SkyboxFt = skybox_assets[World_Skybox].SkyboxFt
+            lighting.Sky.SkyboxLf = skybox_assets[World_Skybox].SkyboxLf
+            lighting.Sky.SkyboxRt = skybox_assets[World_Skybox].SkyboxRt
+            lighting.Sky.SkyboxUp = skybox_assets[World_Skybox].SkyboxUp
+            end
+        end}) 
+        
+                        local Cat1 = Tabs.misc:createGroup('left', 'Chat Spammer | Etc')                        
+
+
+                        local runService = game:GetService('RunService')
+                        local chatMessages = {
+                            "ðŸ˜¨Beamed.Xyz On Top You Cant CompeteðŸ˜¨",
+                            "ðŸ˜„ Fancy a cuppa? BLOODY HELL MATE ðŸ˜ƒ, I'm off to the pub ðŸ˜„", "ðŸ˜† I'm off to the pub ðŸ˜‚", "ðŸ˜¡ BLOODY HELL MATE ðŸ˜¤",
+                            "ðŸ˜´ I'm knackered! ðŸ˜©", "ðŸŸðŸ˜‹ I'm off to the chippy ðŸ˜‹", "ðŸ˜– That's rubbish! ðŸ˜’", "ðŸ§´ Can I get a Bo'Oh'O'Wa'Er ðŸ¥¤",
+                            "ðŸ¤ª Get weaved! ðŸ˜µ", "ðŸ˜± OH MY DAYS!! ðŸ˜±", "ðŸ‡¬ðŸ‡§ðŸµ A spot of tea, anyone? ðŸµðŸ‡¬ðŸ‡§", "ðŸ¤”ðŸ§ Quite the conundrum, isn't it? ðŸ§ðŸ¤”",
+                            "ðŸ†ðŸ‘ Catcalling from white vans - British charm! ðŸ˜ðŸšš", "ðŸ˜‚ðŸ¤£ Having a laugh, are we? ðŸ¤£ðŸ˜‚",
+                            "ðŸ§ðŸ¤“ Indulging in some proper British banter, are we? Nothing like a good old-fashioned wit! ðŸ¤£ðŸ˜„",
+                            "ðŸŒ§ï¸ Typical British weather, eh? ðŸŒ¦ï¸", "ðŸ» Cheers mate! ðŸ»", "ðŸ¥³ Time for a jolly good knees-up! ðŸŽ‰",
+                            "ðŸ˜¡ OI, COME HERE! ðŸ˜¡", "ðŸ˜¤ Where you going G?! ðŸ¤”", "ðŸ˜¤ RUN ME YOUR POCKETS FAM?! ðŸ˜¡",            
+                            "ðŸ˜„ Hey y'all! Let's grab a brewski! ðŸ»", "ðŸ¤  Giddy up, I'm heading to the saloon! ðŸŽ", "ðŸ˜¡ What in tarnation?! ðŸ˜¤",
+                            "ðŸ˜´ I'm plum tuckered out! ðŸ˜©", "ðŸ”ðŸ˜‹ I'm fixin' to grab a burger! ðŸ”", "ðŸ˜– That's just plain hogwash! ðŸ˜’",
+                            "ðŸ¥¤ Can I get a soda pop? ðŸ¥¤", "ðŸ¤ª Y'all are driving me bonkers! ðŸ˜µ", "ðŸ˜± OH MY GOODNESS!! ðŸ˜±",
+                            "ðŸ¤”ðŸ§ Quite the head-scratcher, ain't it? ðŸ§ðŸ¤”", "ðŸ˜‚ðŸ¤£ Y'all crack me up! ðŸ¤£ðŸ˜‚",
+                            "ðŸ§ðŸ¤“ Engaging in some good ol' American banter, huh? Ain't nothin' like a good laugh! ðŸ¤£ðŸ˜„",
+                            "ðŸŒ¤ï¸ Ain't this just typical American weather? ðŸŒ¤ï¸", "ðŸ» Cheers y'all! ðŸ»", "ðŸ¥³ Time to throw a hootenanny! ðŸŽ‰",
+                            "ðŸ˜¡ HEY, GET OVER HERE! ðŸ˜¡", "ðŸ˜¤ Where you think you're going, buddy?! ðŸ¤”",
+                            "ðŸ‡¦ðŸ‡º Aussie salute in full swing! ðŸ¦˜", "ðŸ» It's beer o'clock, mate! ðŸ•“ðŸº", "ðŸ”¥ Only in Australia... ðŸ‡¦ðŸ‡ºðŸ”¥",
+                            "ðŸ¦˜ Just another day in the land down under! ðŸ‡¦ðŸ‡º", "ðŸŒž Gonna be a scorcher today! â˜€ï¸ðŸ”¥", "ðŸ¨ Too hot to koala-fy today! ðŸ¨ðŸ”¥",
+                            "ðŸŒ§ï¸ Four seasons in one day - Aussie style! ðŸ‡¦ðŸ‡ºðŸŒ¦ï¸", "ðŸ” Chuck another snag on the barbie, mate! ðŸ”ðŸ”¥",
+                            "ðŸš˜ Dodging kangaroos on the way to work! ðŸ¦˜ðŸš—", "ðŸ Just a friendly reminder to check your shoes... ðŸ¥¾ðŸ",
+                            "ðŸ¦ˆ Don't mind me, just surfing to work! ðŸ„â€â™‚ï¸ðŸ¦˜", "ðŸº Aussie backyard cricket championship in progress! ðŸðŸ‡¦ðŸ‡º",
+                            "ðŸš› CRIKEY! Road train coming through! ðŸš›ðŸ", "ðŸ¤ Shrimp on the barbie, anyone? ðŸ¦ðŸ”¥",
+                            "ðŸ‘¨â€ðŸŒ¾ Straya - where even the wildlife is trying to kill you! ðŸŠðŸ•·ï¸", "ðŸ¦˜ Roo crossing ahead! Watch out! ðŸ¦˜âš ï¸",
+                            "ðŸº No worries, mate! Aussie beer never lets you down! ðŸ»ðŸ‡¦ðŸ‡º", "ðŸ‡¦ðŸ‡º Living the dream in the land down under! ðŸŒðŸ¦˜",
+                            "ðŸ¤“ Ermmm, these aren't hacks, this is a multithreading software tool ðŸ’»", "ðŸ”’ Ackztually 1 dzog ðŸ¤“", "ðŸ” My haczks are betzster ðŸ”’",
+                            "ðŸ”„ Have you tried turning it off and on again? ðŸ”„", "ðŸ¤– I speak binary fluently. 10110 ðŸ¤–", "ðŸ’¡ I have a 1337-level understanding of coding. ðŸ’¡",
+                            "âš¡ï¸ Wheeeeeee, I'm overclocking! âš¡ï¸", "ðŸš€ Boop boop, beep beep, computing! ðŸš€", "ðŸ¤·â€â™‚ï¸ Error 404: Social skills not found. ðŸ¤·â€â™‚ï¸",
+                            "ðŸ’¾ Beepity boopity, let's code some schmoodity! ðŸ’¾", "ðŸ”„ Do you even understand the concept of recursion, or should I explain it in a loop? ðŸ”„",
+                            "ðŸ”„ You need a CTRL+ALT+DEL on your personality. ðŸ”„", "ðŸ§ª My algorithm for social interaction is still in beta testing. ðŸ§ª",
+                            "ðŸ¤£WHY ðŸ˜–ARE ðŸ˜®YOU! ðŸ˜‹PLAYING ðŸ˜£THIS GAMEðŸ˜˜ YOU'RE ðŸ¤—NOT GOOD!ðŸ˜ LOL! ðŸ˜¥ðŸ™„",
+                            "ðŸ˜œPLEASE ðŸ˜’STOP YAPPING! ðŸ˜» NO ðŸ˜´ONE ðŸ˜šCARES ðŸ˜«WHAT ðŸ¥°YOU'RE ðŸ˜‘SAYING! ðŸ˜†",
+                            "ðŸ˜‚WHY ðŸ¤¨ARE ðŸ˜­U ðŸ˜ŠCHEATING ðŸ˜ŽBRO??ðŸ¤£, WHATEVERðŸ˜¤ YOU'REðŸ˜ USINGðŸ˜§ ISðŸ˜± BAD!ðŸ˜¬",
+                            "ðŸ˜«YOUR ðŸ˜SCRIPT ðŸ˜‹IS ðŸ¤ªSO ðŸ˜­BAD!!ðŸ˜, PLEASE ðŸ˜ŠJUSTðŸ˜¢ GIVEðŸ˜´ UP! ðŸ˜­LOL!ðŸ˜­",
+                            "ðŸ¤¦â€â™‚ï¸STOP ðŸ˜CHEATING ðŸ˜±LOL!ðŸ˜¹, YOU'REðŸ˜¦ STILLðŸ˜œ TERRIBLE!ðŸ¤— ATðŸ¤¯ THISðŸ˜  GAME!ðŸ˜«",
+                            "ðŸ˜­WHAT ðŸ˜°IS ðŸ¤ªTHAT ðŸ˜˜SCRIPT!ðŸ™„ IT'S ðŸ¤žWORSE ðŸ¤’THAN ðŸ˜¥AMONGUS HOOK'S ðŸ¤£PASTED ðŸ˜±SCRIPT! ðŸ’€ðŸ’€",
+                            "ðŸ‘ŒGOOD ðŸ¤¤LUCK ðŸ˜²HAVE ðŸ˜¶FUN! ðŸ™, YOUðŸ™„ AREðŸ¤« PLAYINGðŸ˜¬ SUPERðŸ˜­ DUPERðŸ¥± WELL!ðŸ¤©",
+                            "ðŸ˜†YOUR ðŸ˜‹SCRIPT ðŸ˜“IS ðŸ¤‘PASTED! ðŸ˜«PLEASE ðŸ˜GO ðŸ˜–GET ðŸ˜œBETTER ðŸ¤ªSCRIPTSðŸ™„ BUD!ðŸ˜›",
+                            "ðŸ•Š REST ðŸ¤²IN ðŸ™PEACE ðŸ“¿BRO!ðŸ™, I ðŸ¤—WILL ðŸ˜´NOT ðŸ¤ BE ðŸ˜§ATTENDING ðŸ¤¯YOUR ðŸ˜ FUNERAL! ðŸ™",
+                            "ðŸ˜ŒWASN'T ðŸ˜¤EVEN ðŸ˜TRYINGðŸ˜› BRO,ðŸ˜ I'M ðŸ˜ŠHALFðŸ˜† ASLEEPðŸ¤­ RIGHTðŸ˜— NOWðŸ˜Š LOL! ðŸ˜£",
+                            "ðŸ˜­BRO ðŸ˜WHAT ðŸ˜EVEN ðŸ˜›ARE ðŸ™„ YOU ðŸ¤©DOING ðŸ˜ª, JUSTðŸ˜­ GIVEðŸ˜° UPðŸ˜† ONðŸ¤ª THISðŸ˜µ GAMEðŸ¤§ LOL!ðŸ¤­",
+                            "ðŸ˜›WOW ðŸ¤§BRO,ðŸ¤­ AT LEASTðŸ˜¨ YOUðŸ˜¯ TRIED!ðŸ˜¶, NEXTðŸ˜Ž TIMEðŸ¤£ YOUðŸ¤­ SHOULDðŸ˜  REALLYðŸ¤  TRYðŸ˜« HARDERðŸ˜· THOUGH!ðŸ¤©",
+                            "ðŸ¤£NO WAY ðŸ˜‚YOU JUST ðŸ˜‚DID THAT! ðŸ˜‚ARE YOU ðŸ˜œSERIOUS? ðŸ˜†GET GOOD!",
+                            "ðŸ˜¡STOP ðŸ¥´TRYING ðŸ˜©SO HARD ðŸ˜ªIT'S ðŸ˜¤JUST A ðŸ¤£GAME!",
+                            "ðŸ¤”IS THIS ðŸ¤”YOUR FIRST ðŸ¤ªTIME PLAYING? ðŸ¤ªNO WAY! ðŸ¤”YOU'RE THAT BAD!",
+                            "ðŸ˜¤YOU'RE ðŸ˜©A JOKE ðŸ˜†GET ðŸ¤£OUT ðŸ¤ªOF HERE!",
+                            "ðŸ¤£NICE TRY ðŸ¤ªBUT NO ðŸ˜…YOU'RE STILL ðŸ˜’TERRIBLE!",
+                            "ðŸ˜‚EVERYONE CAN ðŸ˜SEE YOU'RE CHEATING! ðŸ˜œ",
+                            "ðŸ˜«IT'S JUST ðŸ˜£A GAME ðŸ˜¥AND YOU'RE ðŸ˜©STILL LOSING!",
+                            "ðŸ˜²WHAT A ðŸ˜¨FAIL! ðŸ˜…YOU'RE JUST ðŸ˜†NOT GOOD!",
+                            "ðŸ¤”ARE YOU EVEN ðŸ˜´TRYING? ðŸ¤·â€â™‚ï¸",
+                            "ðŸ˜¡THIS IS ðŸ˜©SO EMBARRASSING ðŸ˜£FOR YOU!",
+                            "ðŸ˜‚OH NO, ðŸ¤£NOT AGAIN! ðŸ˜œYOU REALLY ðŸ˜†NEED HELP!",
+                            "ðŸ¤£EVEN MY ðŸ¶DOG CAN ðŸ¤­PLAY BETTER ðŸ¤ªTHAN YOU!",
+                            "ðŸ˜†THIS IS JUST ðŸ¤ªTOO EASY! ðŸ˜",
+                            "ðŸ˜¤KEEP TRYING ðŸ¤£MAYBE ONE DAY ðŸ¤”YOU'LL IMPROVE!",
+                            "ðŸ˜œNO WAY ðŸ˜†YOU JUST DID THAT! ðŸ˜‚SERIOUSLY?",
+                            "ðŸ˜’CAN'T YOU ðŸ˜’SEE NO ONE'S ðŸ˜IMPRESSED?",
+                            "ðŸ˜…YOUR MOVES ðŸ˜‚ARE SO ðŸ˜†PREDICTABLE!",
+                            "ðŸ¤­BETTER LUCK ðŸ¤”NEXT TIME ðŸ˜†LOL!",
+                            "ðŸ¤£I'M NOT EVEN ðŸ¤”TRYING AND ðŸ˜STILL WINNING!",
+                            "ðŸ˜¹YOU'RE ðŸ¤ªTRYING SO ðŸ˜HARD, YET ðŸ¤”YOU STILL ðŸ¤£FAIL!",
+                            "ðŸ˜‚I'M NOT EVEN ðŸ˜´FULLY AWAKE ðŸ¤£AND I'M ðŸ¤ªDESTROYING YOU!",
+                            "ðŸ˜†WHAT IS THIS, ðŸ¤£A PRACTICE ROUND? ðŸ˜¹YOU'RE TOO EASY!",
+                            "ðŸ¤£EVEN ðŸ¤¡CLOWNS ðŸ¤¡WOULD ðŸ¤­LAUGH ðŸ¤£AT YOUR SKILLS!",
+                            "ðŸ¤ªYOU'RE LIKE A ðŸ¤–BOT ðŸ¤–WITH ðŸ¤£A GLITCH!",
+                            "ðŸ˜‚HEY, ðŸ˜œYOU DROPPED YOUR ðŸ˜©SKILLS BACK THERE!",
+                            "ðŸ¤£KEEP DREAMING! ðŸ¤£YOU'LL NEVER ðŸ¤ªBEAT ME!",
+                            "ðŸ˜‚WOW, ðŸ˜…DID YOU ðŸ¤”EVEN TRY? ðŸ˜†SO SAD!",
+                            "ðŸ¤¡YOU MUST BE ðŸ¤ªJOKING WITH THOSE ðŸ¤£MOVES!",
+                            "ðŸ˜œSORRY, ðŸ¤ªI DIDN'T REALIZE ðŸ˜†WE WERE PLAYING ðŸ¤£WITH TRAINING WHEELS!"
+                        }
+
+                        local timeTillNextMessage = math.huge
+                        local chatSpammerEnabled = false 
+                        
+                        local function toggleChatSpammer(state)
+                            chatSpammerEnabled = state
+                        end
+                        
+                        runService.Heartbeat:Connect(function(dt)
+                            if chatSpammerEnabled then
+                                timeTillNextMessage = timeTillNextMessage + dt
+                                if timeTillNextMessage >= 2.9 + math.random(10, 30) / 100 then
+                                    timeTillNextMessage = 0
+                                    local randomMessage = chatMessages[math.random(1, #chatMessages)]
+                                    game:GetService("Players").LocalPlayer.TCP:FireServer(23, randomMessage, 'Global')
+                                end
+                            end
+                        end)
+
+                        Cat1:addToggle({
+                            text = "ChatSpammer",
+                            default = false,
+                            flag = "ChatSpammer",
+                            callback = toggleChatSpammer
+                        })
+
+local UserInputService = game:GetService("UserInputService")
+local character = game.Workspace.Ignore.LocalCharacter
+local climbing = false
+local climbSpeed = 7
+local climbAcceleration = 1000
+
+local bodyVelocity = Instance.new("BodyVelocity")
+bodyVelocity.MaxForce = Vector3.new(0, 500000, 0) 
+
+local function startClimbing()
+local lookVector = character.PrimaryPart.CFrame.LookVector
+local forwardVelocity = lookVector * climbAcceleration
+local upwardVelocity = Vector3.new(0, climbSpeed, 0)
+bodyVelocity.Velocity = forwardVelocity + upwardVelocity
+bodyVelocity.Parent = character.PrimaryPart 
+end
+
+local function stopClimbing()
+climbing = false
+bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+bodyVelocity.Parent = nil
+end
+
+local function toggleClimbing()
+climbing = not climbing
+if climbing then
+    startClimbing()
+else
+    stopClimbing()
+end
+end
+
+UserInputService.InputBegan:Connect(function(input)
+if input.KeyCode == Enum.KeyCode.Q then
+    toggleClimbing()
+elseif input.KeyCode == Enum.KeyCode.X then
+    stopClimbing()
+end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+if input.KeyCode == Enum.KeyCode.Q then
+    toggleClimbing()
+end
+end)
+
+local float = Tabs.misc:createGroup('right', 'Climb | Float')
+
+float:addSlider({text = "climbSpeed", min = 1, max = 50, suffix = "%", float = 1, default = 1, flag = "climbSpeed",callback = function(Value)
+climbSpeed = Value
+end})
+
+float:addSlider({text = "climbAcceleration", min = 500, max = 5000, suffix = "%", float = 1, default = 1500, flag = "climbAcceleration",callback = function(Value)
+climbAcceleration = Value
+end})
+
+
+local ExploitsTab = Tabs.main:createGroup('right', 'Exploits | Etc')
+
+local longneck = {
+LongNeckEnabled = false,
+UpperLimitDefault = 3,
+LowerLimitDefault = 1.75,
+CurrentSliderValue = 1.75,
+}
+
+local longNeckKeybindEnabled = false
+
+ExploitsTab:addToggle({text = "Long Neck", default = false, flag = "longneck_toggle", callback = function(Value)
+longneck.LongNeckEnabled = Value
+longNeckKeybindEnabled = Value
+if not longneck.LongNeckEnabled then
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.UpperLimit = longneck.UpperLimitDefault
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.LowerLimit = longneck.LowerLimitDefault
+else
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.UpperLimit = longneck.CurrentSliderValue
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.LowerLimit = longneck.CurrentSliderValue
+end
+end}):addKeybind({text = "Toggle Long Neck", default = Enum.KeyCode.Unknown, mode = "toggle", flag = "longneck_keybind", callback = function(Value)
+longNeckKeybindEnabled = not longNeckKeybindEnabled
+longneck.LongNeckEnabled = longNeckKeybindEnabled
+if not longneck.LongNeckEnabled then
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.UpperLimit = longneck.UpperLimitDefault
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.LowerLimit = longneck.LowerLimitDefault
+else
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.UpperLimit = longneck.CurrentSliderValue
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.LowerLimit = longneck.CurrentSliderValue
+end
+end})
+
+-- Height Changer Slider
+ExploitsTab:addSlider({text = "Height Changer:", suffix = "m", min = 3.75, max = 8.2, rounding = 2, default = 4.25, flag = "height_slider", callback = function(Value)
+longneck.CurrentSliderValue = Value
+if longneck.LongNeckEnabled then
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.LowerLimit = Value
+    game:GetService("Workspace").Ignore.LocalCharacter.Bottom.PrismaticConstraint.UpperLimit = Value
+end
+end})
+
+
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+
+local function createJumpShootPart()
+local JSPart = Instance.new("Part", Workspace)
+JSPart.Name = "JumpShoot"
+JSPart.Size = Vector3.new(4, 0.2, 4)
+JSPart.Anchored = true
+
+JSPart.Color = Color3.fromRGB(85, 170, 255) 
+
+local forceField = Instance.new("SpecialMesh")
+forceField.Parent = JSPart
+forceField.MeshType = Enum.MeshType.FileMesh
+forceField.MeshId = "rbxassetid://20329976" 
+return JSPart
+end
+
+local function updateJumpShootPosition(JSPart)
+while true do
+    local characterPosition = Workspace.Ignore.LocalCharacter.Middle.Position
+    JSPart.Position = characterPosition - Vector3.new(0, 3.5, 0)
+    RunService.Heartbeat:Wait()
+end
+end
+
+local JumpShootEnabled = false
+
+local function toggleJumpShoot(state)
+JumpShootEnabled = state
+if JumpShootEnabled then
+    if not JSPart then
+        JSPart = createJumpShootPart()
+        spawn(function()
+            updateJumpShootPosition(JSPart)
+        end)
+    end
+else
+    if JSPart then
+        JSPart:Destroy()
+        JSPart = nil
+    end
+end
+end
+
+ExploitsTab:addToggle({
+text = "Jump Shoot",
+default = false,
+flag = "JumpShoot",
+callback = toggleJumpShoot
+})
+
+local Lighting = game:GetService("Lighting")
+
+local ESP = false
+local NameOn = false
+local Distance = false
+local ColorBased = false
+local maxDistance = 1000
+
+local OreESP = function(Ore)
+    local Name = Drawing.new("Text")
+    local Connect;
+    Connect = game:GetService("RunService").RenderStepped:Connect(function()
+        if Ore then
+            local Cam = game:GetService("Workspace").CurrentCamera
+            local CamPos = Cam.CFrame.Position
+            local OrePos = Ore:GetPivot().Position
+            local Dist = (CamPos - OrePos).Magnitude
+            
+            if Dist <= maxDistance then 
+                local Pos, OnScreen = Cam:WorldToViewportPoint(OrePos)
+                
+                if ESP and NameOn then
+                    if #Ore:GetChildren() > 1 then
+                        Name.Visible = OnScreen
+                        if Ore:GetChildren()[2].Color == Color3.fromRGB(199, 172, 120) then
+                            Name.Text = "Iron"
+                        elseif Ore:GetChildren()[2].Color == Color3.fromRGB(248, 248, 248) then
+                            Name.Text = "Nitrate"
+                        else
+                            Name.Text = "Ore"
+                        end
+                        if Distance then
+                            Name.Text = Name.Text.." ["..math.floor(Dist).."]"
+                        end
+                        Name.Position = Vector2.new(Pos.X, Pos.Y)
+                        if ColorBased then
+                            Name.Color = Ore:GetChildren()[2].Color
+                        else
+                            Name.Color = Color3.fromRGB(255, 255, 255)
+                        end
+                        Name.Size = 18
+                        Name.Font = 2
+                    else
+                        Name.Visible = OnScreen
+                        Name.Text = "Stone"
+                        if Distance then
+                            Name.Text = Name.Text.." ["..math.floor(Dist).."]"
+                        end
+                        Name.Position = Vector2.new(Pos.X, Pos.Y)
+                        if ColorBased then
+                            Name.Color = Color3.fromRGB(105, 102, 92)
+                        else
+                            Name.Color = Color3.fromRGB(255, 255, 255)
+                        end
+                        Name.Size = 18
+                        Name.Font = 2
+                    end
+                else
+                    Name.Visible = false
+                end
+            else
+                Name.Visible = false
+            end
+        else
+            Name.Visible = false
+            if not Ore then
+                Name:Remove()
+                Connect:Disconnect()
+            end
+        end
+    end)
+end
+
+for _, v in pairs(workspace:GetChildren()) do
+    if v:IsA("Model") then
+        if v:FindFirstChild("Part") and v:FindFirstChild("Part"):IsA("MeshPart") and v:FindFirstChild("Part").MeshId == "rbxassetid://12939036056" then
+            OreESP(v)
+        end
+    end
+end
+
+workspace.ChildAdded:Connect(function(v)
+    if v:IsA("Model") then
+        if v:FindFirstChild("Part") and v:FindFirstChild("Part"):IsA("MeshPart") and v:FindFirstChild("Part").MeshId == "rbxassetid://12939036056" then
+            OreESP(v)
+        end
+    end
+end)
+
+local OREESP = Tabs.world:createGroup('right', 'Ore Esp | Etc')
+
+OREESP:addToggle({text = "Ore Esp",default = false,flag = "ESP",callback = function(state)
+    ESP = state
+end})
+
+OREESP:addToggle({text = "NameOn",default = false,flag = "NameOn",callback = function(state)
+    NameOn = state
+end})
+
+OREESP:addToggle({text = "Distance",default = false,flag = "Distance",callback = function(state)
+    Distance = state
+end})
+
+OREESP:addToggle({text = "Color Based",default = false,flag = "ColorBased",callback = function(state)
+    ColorBased = state
+end})
+
+OREESP:addSlider({text = "Ore Distance", min = 1, max = 1500, suffix = "%", float = 1, default = 500, flag = "maxDistance", callback = function(Value)
+    maxDistance = Value
+end})
+    
+    --// UI Settings \\--
+    local gameTab = Tabs.settings:createGroup('left', 'Game')
+
+    --// Game \\-- 
+    do
+    gameTab:addToggle({text = "Menu Bind",default = true,flag = "MenuBind_Toggle",callback = function(state)
+    end}):addKeybind({text = "Menu Bind",type = "toggle",key = Enum.KeyCode.K,flag = "menubindkeybind_toggle",callback = function(state)
+    Library.keybind = state
+    end})
+    gameTab:addButton({text = "Copy Join Code",callback = function(state)
+    setclipboard(("game:GetService('TeleportService'):TeleportToPlaceInstance(%s, '%s')"):format(game.PlaceId, game.JobId))
+    Library:Notify("demonity.cc - succesfully copied join code!", 5)
+    end})
+    gameTab:addButton({text = "rejoin",callback = function(Value)
+    game:GetService('TeleportService'):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+    library:Notify("demonity.cc - succesfully rejoining server!", 5)
+    end})
+    end
+
+    local createConfigs = Tabs.settings:createGroup('right', 'Configs')
+
+    do --// Configs \\--
+    createConfigs:addTextbox({text = "Name:",flag = "config_name"})
+    createConfigs:addButton({text = "Create",callback = Library.createConfig})
+    createConfigs:addConfigbox({flag = 'config_box',values = {}})
+    createConfigs:addButton({text = "Load",callback = Library.loadConfig})
+    createConfigs:addButton({text = "Overwrite",callback = Library.saveConfig})
+    createConfigs:addButton({text = "Refresh",callback = function(refresh) Library:refreshConfigs(refresh) Library:Notify("Succesfully: refreshed all cfg's!", 5) end})
+    createConfigs:addButton({text = "Delete",callback = Library.deleteConfig})
+    end; 
+
+    Library:refreshConfigs()
+    Library:Notify(string.format("Success: script loaded in %.2fs", os.clock() - OsClock),15)
+    end
